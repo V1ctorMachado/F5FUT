@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dia de Jogo</title>
+    <script>
+        (function () {
+            var t = null;
+            try { t = localStorage.getItem('diadejogo-tema'); } catch (e) { }
+            if (!t) t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro';
+            document.documentElement.dataset.theme = t;
+        })();
+    </script>
+    <style>
+        :root {
+            --bg: #fafafa;
+            --card: #fff;
+            --input: #fff;
+            --text: #1a1a1a;
+            --muted: #6b6b6b;
+            --line: #e7e7e7;
+            --yellow: #e0a800;
+            --blue: #2563eb;
+            --red: #dc2626;
+            --green: #16a34a;
+            --warn: #b45309;
+            color-scheme: light;
+        }
+
+        :root[data-theme="escuro"] {
+            --bg: #111214;
+            --card: #1a1b1e;
+            --input: #141518;
+            --text: #ececec;
+            --muted: #9a9a9a;
+            --line: #2c2d31;
+            --yellow: #f5c400;
+            --blue: #3b82f6;
+            --red: #ef4444;
+            --green: #22c55e;
+            --warn: #f59e0b;
+            color-scheme: dark;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 15px;
+            line-height: 1.5;
+            transition: background .2s, color .2s
+        }
+
+        header {
+            background: var(--card);
+            border-bottom: 1px solid var(--line);
+            position: sticky;
+            top: 0;
+            z-index: 5
+        }
+
+        .wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 0 16px
+        }
+
+        .top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 56px
+        }
+
+        .brand {
+            font-weight: 700;
+            letter-spacing: .08em;
+            font-size: 14px
+        }
+
+        .navbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto
+        }
+
+        nav {
+            display: flex;
+            gap: 2px
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            padding: 16px 12px 14px;
+            font: inherit;
+            font-size: 14px;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap
+        }
+
+        nav button.active {
+            color: var(--text);
+            border-bottom-color: var(--text)
+        }
+
+        main {
+            padding: 28px 16px 64px
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-bottom: 2px
+        }
+
+        h3 {
+            font-size: 15px;
+            margin-bottom: 12px
+        }
+
+        .sub {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 20px
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px
+        }
+
+        .grid3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px
+        }
+
+        .team {
+            border-top: 4px solid;
+            margin-bottom: 0
+        }
+
+        .team.YELLOW {
+            border-top-color: var(--yellow)
+        }
+
+        .team.BLUE {
+            border-top-color: var(--blue)
+        }
+
+        .team.RED {
+            border-top-color: var(--red)
+        }
+
+        .team h3 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .list {
+            list-style: none
+        }
+
+        .list li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px
+        }
+
+        .list li:last-child {
+            border-bottom: none
+        }
+
+        .tag {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .05em
+        }
+
+        .scroll {
+            overflow-x: auto
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 9px 8px;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap
+        }
+
+        th {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .05em
+        }
+
+        .num {
+            text-align: right
+        }
+
+        th.on,
+        td.on {
+            color: var(--text);
+            font-weight: 700
+        }
+
+        input,
+        select {
+            font: inherit;
+            font-size: 14px;
+            padding: 8px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--input);
+            color: var(--text)
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--text)
+        }
+
+        .btn {
+            font: inherit;
+            font-size: 14px;
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--text);
+            background: var(--text);
+            color: var(--bg);
+            cursor: pointer;
+            display: inline-block;
+            white-space: nowrap
+        }
+
+        .btn.ghost {
+            background: var(--card);
+            color: var(--text);
+            border-color: var(--line)
+        }
+
+        .btn.ghost:hover {
+            border-color: var(--text)
+        }
+
+        .btn.small {
+            padding: 4px 10px;
+            font-size: 13px
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .between {
+            justify-content: space-between
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            border: 1px solid var(--line);
+            color: var(--muted)
+        }
+
+        .dot {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            margin-right: 6px
+        }
+
+        .empty {
+            color: var(--muted);
+            padding: 8px 0;
+            font-size: 14px
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 16px
+        }
+
+        .tabs button {
+            font: inherit;
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--card);
+            cursor: pointer;
+            color: var(--muted)
+        }
+
+        .tabs button.active {
+            background: var(--text);
+            color: var(--bg);
+            border-color: var(--text)
+        }
+
+        .checks {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 6px
+        }
+
+        .checks label {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 7px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px
+        }
+
+        .flag {
+            color: var(--warn);
+            font-size: 13px
+        }
+
+        .form {
+            font-family: ui-monospace, Menlo, monospace;
+            letter-spacing: .12em
+        }
+
+        .fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px
+        }
+
+        .field span {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .note {
+            font-size: 13px;
+            color: var(--muted);
+            text-transform: none;
+            letter-spacing: 0
+        }
+
+        .score {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 8px
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px
+        }
+
+        .evgrid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+
+        .evbtn {
+            font: inherit;
+            font-size: 14px;
+            padding: 9px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--line);
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px
+        }
+
+        .evbtn:hover {
+            border-color: var(--text)
+        }
+
+        .evbtn.gol {
+            color: var(--green);
+            border-color: var(--green);
+            grid-column: 1 / -1
+        }
+
+        .evbtn.ass {
+            color: var(--blue);
+            border-color: var(--blue)
+        }
+
+        .evbtn.mur {
+            color: var(--text);
+            border-color: var(--text);
+            grid-column: 1 / -1
+        }
+
+        .notas-todas summary { cursor: pointer; font-size: 13px; color: var(--muted); margin-top: 4px }
+        .notas-todas .list li { font-size: 14px }
+        .nota-chip { display: inline-block; min-width: 42px; text-align: center; font-weight: 700; border-radius: 6px; padding: 2px 6px; color: #fff }
+
+        /* TOPS DO DIA */
+        .tops { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-bottom: 20px }
+        .tp-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: var(--bg) }
+        .tp-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px }
+        .tp-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em }
+        .tp-unit { font-size: 11px; color: var(--muted) }
+        .tp-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line) }
+        .tp-row:last-child { border-bottom: none }
+        .tp-pos { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0 }
+        :root[data-theme="escuro"] .tp-pos { color: #111 }
+        .tp-pos.p1 { background: var(--gold) } .tp-pos.p2 { background: var(--silver) } .tp-pos.p3 { background: var(--bronze) }
+        .tp-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500 }
+        .tp-team { font-size: 11px; color: var(--muted) }
+        .tp-val { font-size: 20px; font-weight: 700; line-height: 1 }
+
+        /* FINALIZAR DIA / EDITAR PARTIDA */
+        .btn-ic { display: inline-flex; align-items: center; gap: 6px }
+        .btn-ic svg { flex-shrink: 0 }
+        .card.editando { border-color: var(--text) }
+        .banner-fim { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border-left: 4px solid var(--green) }
+
+        .evbtn.og {
+            color: var(--red);
+            border-color: var(--red)
+        }
+
+        /* DESTAQUES DO DIA */
+        :root { --gold: #c99a06; --silver: #8a9099; --bronze: #b0703c; }
+        :root[data-theme="escuro"] { --gold: #f2c230; --silver: #b9bec6; --bronze: #d08b52; }
+        .dest-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 14px }
+        .dest-head h3 { margin: 0; font-size: 17px }
+        .dest-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px }
+        .dest-col-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px }
+        .pd { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 8px; margin-bottom: 8px; background: var(--bg) }
+        .pd.p1 { border-left-color: var(--gold); padding: 16px 12px }
+        .pd.p2 { border-left-color: var(--silver) }
+        .pd.p3 { border-left-color: var(--bronze) }
+        .pd-pos { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; color: #fff }
+        .p1 .pd-pos { background: var(--gold); width: 36px; height: 36px; font-size: 16px }
+        .p2 .pd-pos { background: var(--silver) }
+        .p3 .pd-pos { background: var(--bronze) }
+        :root[data-theme="escuro"] .pd-pos { color: #111 }
+        .pd-main { flex: 1; min-width: 0 }
+        .pd-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+        .p1 .pd-name { font-size: 17px }
+        .pd-sub { font-size: 12px; color: var(--muted); margin-top: 2px }
+        .pd-val { text-align: right; flex-shrink: 0 }
+        .pd-val b { display: block; font-size: 20px; line-height: 1.1 }
+        .p1 .pd-val b { font-size: 24px }
+        .pd-val span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em }
+
+        .awards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-bottom: 20px }
+        .award { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--bg) }
+        .award-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em }
+        .award-name { font-weight: 600; font-size: 16px; margin-top: 4px; line-height: 1.3 }
+        .award-val { font-size: 12px; color: var(--muted); margin-top: 2px }
+
+        .tempo-esgotado {
+            color: var(--red);
+            font-weight: 700
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="wrap top">
+            <div class="brand">DIA DE JOGO</div>
+            <div class="navbar">
+                <nav id="nav">
+                    <button data-view="teams">Times</button>
+                    <button data-view="schedule">Agenda</button>
+                    <button data-view="rankings">Estatísticas</button>
+                    <button data-view="watch">Rankings</button>
+                    <button data-view="admin">Admin</button>
+                </nav>
+                <button class="btn ghost small" data-act="theme" id="themeBtn">Tema</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="wrap" id="app">
+        <p class="empty">Carregando...</p>
+    </main>
+
+    <script type="module">
+        // 1. Importações corrigidas com caminhos completos e versões unificadas (10.12.2)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        /* ---------- CONFIGURAÇÃO DO FIREBASE ---------- */
+        /* CONFIGURAÇÃO: cole aqui os dados do SEU projeto Firebase (Configurações do projeto > Seus apps > App da Web) */
+        const firebaseConfig = {
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
+
+        // Login do admin usa um e-mail fixo no código; o segredo distribuído aos organizadores é só a senha.
+        /* CONFIGURAÇÃO: e-mail do usuário administrador criado no Firebase Authentication */
+        const ADMIN_EMAIL = 'admin@seudominio.app';
+
+        /* CONFIGURAÇÃO: sem os dados do Firebase, mostra o aviso em vez de travar em "Carregando..." */
+        if (!firebaseConfig.projectId || !firebaseConfig.apiKey) {
+            document.getElementById('app').innerHTML = '<div class="card"><h3>Configuração pendente</h3><p class="sub" style="margin:0">Preencha o objeto <b>firebaseConfig</b> e o <b>ADMIN_EMAIL</b> no código com os dados do seu projeto Firebase para começar.</p></div>';
+            throw new Error('Firebase não configurado');
+        }
+
+        // Inicialização única e global das constantes do Firebase
+        const app = initializeApp(firebaseConfig);
+        export const db = getFirestore(app);
+        export const auth = getAuth(app);
+
+        /* ========== Constantes ========== */
+        const TEAMS = ['YELLOW', 'BLUE', 'RED'];
+        const NOME = { YELLOW: 'AMARELO', BLUE: 'AZUL', RED: 'VERMELHO' };
+        const RES = { W: 'V', D: 'E', L: 'D' };
+        const PARTIDAS_ALEATORIAS = 7;
+        const DURACAO_PARTIDA = 7 * 60 * 1000;
+        const PADRAO = { teamSize: 6, pairMemory: 8, watchWindow: 5, minGames: 3 };
+
+        const $ = s => document.querySelector(s);
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+        /* ========== Tema ========== */
+        function aplicarTema(t) {
+            document.documentElement.dataset.theme = t;
+            try { localStorage.setItem('diadejogo-tema', t); } catch (e) { }
+            $('#themeBtn').textContent = t === 'escuro' ? 'Tema claro' : 'Tema escuro';
+        }
+        aplicarTema(document.documentElement.dataset.theme);
+
+        /* ========== Estado ========== */
+        let state = { settings: { ...PADRAO }, players: [], days: [], matches: [] };
+        const loaded = { players: false, days: false, matches: false, config: false };
+        let loadError = null, authUser = null, isAdmin = false, authMsg = '';
+        let view = 'teams', openDay = null, statTab = 'observacao';
+        let editando = null; /* EDITAR PARTIDA: id da partida encerrada aberta para edição */
+
+        if (!firebaseConfig.projectId) {
+            $('#app').innerHTML = `<div class="card"><h3>Configuração pendente</h3><p class="sub" style="margin:0">Preencha o objeto <b>firebaseConfig</b> no código com os dados do seu projeto Firebase para começar.</p></div>`;
+            throw new Error('Firebase não configurado');
+        }
+
+        // Removidas as reinicializações duplicadas (fb, db, auth) que ficavam aqui. Tudo agora usa as constantes do topo.
+
+        ['players', 'days', 'matches'].forEach(col => onSnapshot(collection(db, col),
+            snap => { state[col] = snap.docs.map(d => ({ ...d.data(), id: d.id })); loaded[col] = true; render(); },
+            err => { loadError = err.code || err.message; render(); }));
+
+        onSnapshot(doc(db, 'config', 'settings'),
+            snap => { state.settings = { ...PADRAO, ...(snap.exists() ? snap.data() : {}) }; loaded.config = true; render(); },
+            err => { loadError = err.code || err.message; render(); });
+
+        onAuthStateChanged(auth, async user => {
+            authUser = user; isAdmin = false; authMsg = '';
+            if (user) {
+                try {
+                    const s = await getDoc(doc(db, 'admins', user.uid));
+                    isAdmin = s.exists();
+                    if (!isAdmin) authMsg = 'Este usuário não tem permissão de administrador.';
+                } catch (e) { authMsg = 'Não foi possível verificar a permissão de administrador.'; }
+            }
+            render();
+        });
+
+        /* ========== Gravação ========== */
+        const falha = e => alert('Erro ao salvar: ' + (e.code || e.message));
+        const limpo = o => JSON.parse(JSON.stringify(o));
+        const put = (col, o) => setDoc(doc(db, col, o.id), limpo(o)).catch(falha);
+        const del = (col, id) => deleteDoc(doc(db, col, id)).catch(falha);
+        async function lote(ops) {
+            try {
+                for (let i = 0; i < ops.length; i += 450) {
+                    const b = writeBatch(db);
+                    ops.slice(i, i + 450).forEach(([tipo, col, o]) => tipo === 'set' ? b.set(doc(db, col, o.id), limpo(o)) : b.delete(doc(db, col, o)));
+                    await b.commit();
+                }
+            } catch (e) { falha(e); }
+        }
+
+        /* ========== Utilidades ========== */
+        const P = id => state.players.find(p => p.id === id);
+        const M = id => state.matches.find(m => m.id === id);
+        const pname = id => P(id)?.name || 'Desconhecido';
+        const dayById = id => state.days.find(d => d.id === id);
+        const curDay = () => dayById(openDay);
+        const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+        const fmtDate = s => new Date(s + 'T00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+        const sortedDays = () => state.days.slice().sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')));
+        const dayMatches = dayId => state.matches.filter(m => m.dayId === dayId).sort((a, b) => a.created - b.created);
+        const pct = x => Math.round(x * 100) + '%';
+        const dot = t => `<span class="dot" style="background:var(--${t.toLowerCase()})"></span>`;
+        const teamLabel = t => dot(t) + NOME[t];
+        const modeLabel = m => m === 'balanced' ? 'Balanceado por estatísticas' : 'Aleatório';
+        function seloSorteio(day) {
+            const n = (day.drawHistory || (day.drawnAt ? [1] : [])).length;
+            if (!n) return '';
+            return `<p class="${n > 1 ? 'flag' : 'tag'}" style="margin:4px 0 0">Selo do sorteio: ${n} clique${n > 1 ? 's' : ''} em Sortear.</p>`;
+        }
+        const fmtTimer = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+        /* CRONÔMETRO: começa parado; elapsed = tempo já jogado, runningSince = quando foi dado o play */
+        function relogio(m) {
+            if (m.runningSince === undefined && m.startedAt) return { elapsed: 0, since: m.startedAt }; // partidas antigas
+            return { elapsed: m.elapsed || 0, since: m.runningSince || null };
+        }
+        const decorrido = m => { const r = relogio(m); return r.elapsed + (r.since ? Date.now() - r.since : 0); };
+        const restante = m => DURACAO_PARTIDA - decorrido(m);
+        const rodando = m => !!relogio(m).since;
+        const iniciado = m => rodando(m) || decorrido(m) > 0;
+        function timerTxt(m) {
+            if (!iniciado(m)) return fmtTimer(DURACAO_PARTIDA) + ' · aguardando início';
+            const r = restante(m);
+            if (r <= 0) return '00:00 · tempo esgotado';
+            return fmtTimer(r) + (rodando(m) ? '' : ' · pausado');
+        }
+        /* FINALIZAÇÃO: horário em que a partida terminou e cronômetro congelado */
+        function fimTxt(m) {
+            if (!m.done) return '';
+            const partes = [];
+            if (m.endedAt) partes.push('Encerrada às ' + new Date(m.endedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+            if (m.runningSince !== undefined) {
+                const r = restante(m);
+                partes.push('cronômetro parou em ' + (r <= 0 ? '00:00 (tempo esgotado)' : fmtTimer(r)) + ' · tempo jogado ' + fmtTimer(decorrido(m)));
+            }
+            return partes.join(' · ');
+        }
+        function congelar(m) { const r = relogio(m); m.elapsed = r.elapsed + (r.since ? Date.now() - r.since : 0); m.runningSince = null; }
+
+        function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; }
+        function gkOf(day, m, t) {
+            if (day.gk && day.gk[t]) return day.gk[t];
+            const folga = TEAMS.find(x => x !== m.home && x !== m.away);
+            return (folga && day.gk && day.gk[folga]) || null;
+        }
+        function roster(day, team, m) { if (!day.teams) return []; const r = day.teams[team].slice(); const gk = m ? gkOf(day, m, team) : (day.gk && day.gk[team]); if (gk) r.unshift(gk); return r; }
+        function score(m) { return [m.events.filter(e => e.team === m.home).length, m.events.filter(e => e.team === m.away).length]; }
+        const LAPIS = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+        const horaMin = ts => new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        function dayStatus(d) {
+            if (d.closed) { const f = state.matches.filter(m => m.dayId === d.id && m.done).length; return `Finalizado · ${f} partida${f === 1 ? '' : 's'}`; }
+            const n = state.matches.filter(m => m.dayId === d.id && m.done).length;
+            return n ? `${n} partida${n > 1 ? 's' : ''} jogada${n > 1 ? 's' : ''}` : d.teams ? 'Times sorteados' : 'Agendado';
+        }
+
+        /* SUBSTITUIÇÃO: em qual time está o jogador, quem foi sorteado e histórico de trocas */
+        function timeDe(day, id) {
+            if (!day.teams) return null;
+            for (const t of TEAMS) {
+                if (day.teams[t].includes(id)) return { t, gk: false };
+                if (day.gk && day.gk[t] === id) return { t, gk: true };
+            }
+            return null;
+        }
+        function sorteados(day) {
+            return day.teams ? TEAMS.flatMap(t => [...(day.gk && day.gk[t] ? [day.gk[t]] : []), ...day.teams[t]]) : [];
+        }
+        function subsInfo(day) {
+            if (!day.subs || !day.subs.length) return '';
+            return `<p class="note" style="margin:4px 0 12px">Substituições: ${day.subs.map(s =>
+                (s.in ? `${esc(pname(s.in))} no lugar de ${esc(pname(s.out))}` : `${esc(pname(s.out))} saiu sem substituto`) + ` (${NOME[s.team]})`
+            ).join('; ')}.</p>`;
+        }
+        function subsCard(day) {
+            const noTime = new Set(sorteados(day));
+            const sairam = [...noTime].filter(id => !day.attendees.includes(id));
+            const naLista = day.attendees.filter(id => P(id) && !noTime.has(id));
+            const optSai = [...noTime].map(id => {
+                const x = timeDe(day, id);
+                return `<option value="${id}" ${sairam[0] === id ? 'selected' : ''}>${esc(pname(id))} (${NOME[x.t]}${x.gk ? ', goleiro' : ''})</option>`;
+            }).join('');
+            const candidatos = state.players.filter(p => p.active && !noTime.has(p.id))
+                .sort((a, b) => (naLista.includes(b.id) - naLista.includes(a.id)) || a.name.localeCompare(b.name));
+            const optEntra = candidatos.map(p =>
+                `<option value="${p.id}" ${naLista[0] === p.id ? 'selected' : ''}>${esc(p.name)}${p.pos === 'GK' ? ' (goleiro)' : ''}${naLista.includes(p.id) ? ' - na lista' : ''}</option>`
+            ).join('');
+            return `<div class="card"><h3>Substituições</h3>
+    <p class="sub">O suplente assume a vaga de quem saiu, no mesmo time. Não conta como novo sorteio.</p>
+    ${sairam.length ? `<p class="flag" style="margin-bottom:6px">Sorteados que saíram da lista: ${sairam.map(id => esc(pname(id))).join(', ')}.</p>` : ''}
+    ${naLista.length ? `<p class="flag" style="margin-bottom:12px">Na lista, mas fora dos times: ${naLista.map(id => esc(pname(id))).join(', ')}.</p>` : ''}
+    <div class="row"><span class="tag">Sai</span><select id="subOut">${optSai}</select>
+    <span class="tag">Entra</span><select id="subIn"><option value="">Ninguém (só para goleiro)</option>${optEntra}</select>
+    <button class="btn" data-act="sub">Substituir</button></div>
+    ${subsInfo(day)}</div>`;
+        }
+
+        /* DESTAQUES DO DIA: nota estilo SofaScore + 3 prêmios (Artilheiro/Garçom, Muralha, Paredão) */
+        const sinal = n => (n > 0 ? '+' : '') + n;
+        const fmt1 = n => n.toFixed(1).replace('.', ',');
+        /* NOTA: todo mundo começa com 6,0 e cada lance soma ou tira pontos. Para ajustar, troque os números. */
+        const NOTA = { base: 6.0, gol: 1.0, assist: 0.5, muralha: 0.75, vitoria: 0.3, derrota: -0.3, golContra: -0.5, min: 3.0, max: 10.0 };
+        /* NOTA DO GOLEIRO: começa em 8,0 e perde 3,0 para cada gol sofrido por jogo (1 gol por jogo = 5,0).
+           Gol, assistência e gol contra do goleiro valem o mesmo que para o jogador de linha. */
+        const NOTA_GOLEIRO = { base: 8.0, golSofridoPorJogo: -3.0 };
+        function notaGoleiro(x) {
+            const media = x.gkGames ? x.conceded / x.gkGames : 0;
+            const n = NOTA_GOLEIRO.base + NOTA_GOLEIRO.golSofridoPorJogo * media
+                + NOTA.gol * x.goals + NOTA.assist * x.assists + NOTA.golContra * x.golsContra;
+            return Math.min(NOTA.max, Math.max(NOTA.min, n));
+        }
+        function notaJogador(x) {
+            const n = NOTA.base + NOTA.gol * x.goals + NOTA.assist * x.assists + NOTA.muralha * x.muralhas
+                + NOTA.vitoria * x.w + NOTA.derrota * x.l + NOTA.golContra * x.golsContra;
+            return Math.min(NOTA.max, Math.max(NOTA.min, n));
+        }
+        const corNota = n => n >= 8 ? '#1d7fd8' : n >= 7 ? '#16a34a' : n >= 6.5 ? '#65a30d' : n >= 6 ? '#ca8a04' : '#dc2626';
+        /* CORES DA NOTA DO GOLEIRO: 8,0+ azul · 5,0+ verde · 4,0+ laranja · abaixo de 4,0 vermelho */
+        const corGoleiro = n => n >= 8 ? '#1d7fd8' : n >= 5 ? '#16a34a' : n >= 4 ? '#ca8a04' : '#dc2626';
+        const chipGk = n => `<span class="nota-chip" style="background:${corGoleiro(n)}">${fmt1(n)}</span>`;
+        const chip = n => `<span class="nota-chip" style="background:${corNota(n)}">${fmt1(n)}</span>`;
+
+        function destaquesDia(day) {
+            const feitas = state.matches.filter(m => m.dayId === day.id && m.done).length;
+            if (!feitas) return '';
+            const st = Object.values(computeStats(day.id));
+            const campo = st.filter(x => x.pos === 'FIELD' && x.games > 0).map(x => ({ ...x, nota: notaJogador(x) }));
+            const todos = campo.concat(st.filter(x => x.pos === 'GK' && x.games > 0).map(x => ({ ...x, nota: notaJogador(x) })));
+            const ranking = campo.slice().sort((a, b) => b.nota - a.nota || b.goals - a.goals || b.muralhas - a.muralhas || b.w - a.w || a.name.localeCompare(b.name));
+            const gks = st.filter(x => x.pos === 'GK' && x.gkGames > 0)
+                .map(x => ({ ...x, media: x.conceded / x.gkGames, nota: notaGoleiro(x) }))
+                .sort((a, b) => b.nota - a.nota || a.media - b.media || b.gkGames - a.gkGames || a.name.localeCompare(b.name));
+
+            const plural = (n, s, p) => `${n} ${n === 1 ? s : p}`;
+            const time = id => { const t = timeDe(day, id); return t ? `${dot(t.t)}${NOME[t.t]}` : ''; };
+
+            /* TOPS DO DIA: top 3 de cada quesito; empatados dividem a mesma posição */
+            const top3 = (rs, chave) => {
+                const ord = rs.filter(x => chave(x) > 0).sort((a, b) => chave(b) - chave(a) || b.nota - a.nota || a.name.localeCompare(b.name)).slice(0, 3);
+                let pos = 0, prev = null;
+                return ord.map((x, i) => { if (chave(x) !== prev) { pos = i + 1; prev = chave(x); } return { ...x, pos, v: chave(x) }; });
+            };
+            const topCard = (titulo, unidade, rs, vazio) => `<div class="tp-card">
+          <div class="tp-head"><span class="tp-title">${titulo}</span><span class="tp-unit">${unidade}</span></div>
+          ${rs.length ? rs.map(x => `<div class="tp-row"><span class="tp-pos p${x.pos}">${x.pos}</span>
+            <div class="tp-name">${esc(x.name)}<div class="tp-team">${time(x.id)}</div></div><span class="tp-val">${x.v}</span></div>`).join('')
+                : `<p class="empty">${vazio}</p>`}</div>`;
+
+            const item = (x, i) => `<div class="pd p${i + 1}">
+          <div class="pd-pos">${i + 1}</div>
+          <div class="pd-main"><div class="pd-name">${esc(x.name)}</div><div class="pd-sub">${time(x.id)}</div></div>
+          <div class="pd-val"><b style="color:${corNota(x.nota)}">${fmt1(x.nota)}</b><span>nota</span></div></div>`;
+            const resumo = x => [x.goals && plural(x.goals, 'gol', 'gols'), x.assists && plural(x.assists, 'assist.', 'assist.'), x.muralhas && plural(x.muralhas, 'muralha', 'muralhas'), `${x.w}V ${x.d}E ${x.l}D`].filter(Boolean).join(' · ');
+
+            return `<div class="card"><div class="dest-head"><h3>Destaques do dia</h3><span class="note">${plural(feitas, 'partida encerrada', 'partidas encerradas')}</span></div>
+      <div class="tops">
+        ${topCard('Artilheiros', 'gols', top3(todos, x => x.goals), 'Nenhum gol ainda.')}
+        ${topCard('Garçons', 'assistências', top3(todos, x => x.assists), 'Nenhuma assistência ainda.')}
+        ${topCard('Muralhas', 'jogos sem sofrer gol', top3(campo, x => x.muralhas), 'Nenhuma muralha marcada ainda.')}
+      </div>
+      <div class="dest-grid">
+        <div><p class="dest-col-title">Melhores notas</p>${ranking.length ? ranking.slice(0, 3).map(item).join('') : '<p class="empty">Sem dados ainda.</p>'}
+          ${ranking.length > 3 ? `<details class="notas-todas"><summary>Ver a nota de todos (${ranking.length} jogadores)</summary><ul class="list" style="margin-top:6px">${ranking.map((x, i) => `<li><span>${i + 1}. ${esc(x.name)} <span class="note">&nbsp;${resumo(x)}</span></span>${chip(x.nota)}</li>`).join('')}</ul></details>` : ''}</div>
+        <div><p class="dest-col-title">Paredão</p>${gks.length ? gks.slice(0, 3).map((x, i) => `<div class="pd p${i + 1}">
+          <div class="pd-pos">${i + 1}</div>
+          <div class="pd-main"><div class="pd-name">${esc(x.name)}</div><div class="pd-sub">${time(x.id)} · ${plural(x.conceded, 'gol sofrido', 'gols sofridos')} em ${plural(x.gkGames, 'jogo', 'jogos')} · ${fmt1(x.media)} por jogo</div></div>
+          <div class="pd-val"><b style="color:${corGoleiro(x.nota)}">${fmt1(x.nota)}</b><span>nota</span></div></div>`).join('') : '<p class="empty">Sem goleiros no gol ainda.</p>'}</div>
+      </div></div>`;
+        }
+
+        /* ========== Rodízio: quem ganha fica ========== */
+        function streakOf(ms, idx, t) { let n = 0; for (let i = idx; i >= 0; i--) { if (ms[i].home === t || ms[i].away === t) n++; else break; } return n; }
+        function plano(m) {
+            const ms = dayMatches(m.dayId), idx = ms.findIndex(x => x.id === m.id);
+            const [h, a] = score(m), waiting = TEAMS.find(t => t !== m.home && t !== m.away);
+            if (h !== a) { const stay = h > a ? m.home : m.away; return { stay, leave: stay === m.home ? m.away : m.home, waiting, motivo: 'vitória' }; }
+            const sh = streakOf(ms, idx, m.home), sa = streakOf(ms, idx, m.away);
+            if (sh === sa) return { tie: true, waiting };
+            const leave = sh > sa ? m.home : m.away;
+            return { stay: leave === m.home ? m.away : m.home, leave, waiting, motivo: 'empate' };
+        }
+        const adversario = (m, t) => t === m.home ? m.away : m.home;
+        /* MURALHA: remove as muralhas do time que sofreu gol e devolve os nomes removidos */
+        function tirarMuralha(m, time) {
+            const saem = (m.muralha || []).filter(x => x.team === time);
+            m.muralha = (m.muralha || []).filter(x => x.team !== time);
+            return saem.map(x => pname(x.player));
+        }
+        function novaPartida(dayId, home, away) { return { id: uid(), dayId, home, away, events: [], done: false, created: Date.now(), elapsed: 0, runningSince: null }; }
+        function canReopen(m, ms) {
+            const idx = ms.findIndex(x => x.id === m.id);
+            if (!m.done) return false;
+            const next = ms[idx + 1];
+            if (!next) return true;
+            return idx + 1 === ms.length - 1 && !next.done && next.events.length === 0;
+        }
+
+        /* ========== Estatísticas ========== */
+        function computeStats(soDia) {
+            const s = {};
+            state.players.forEach(p => s[p.id] = { id: p.id, name: p.name, pos: p.pos, active: p.active, games: 0, w: 0, d: 0, l: 0, goals: 0, assists: 0, gkGames: 0, conceded: 0, pro: 0, contra: 0, muralhas: 0, golsContra: 0, log: [] });
+            const order = {}; sortedDays().forEach((d, i) => order[d.id] = i);
+            state.matches
+                .filter(m => m.done && dayById(m.dayId)?.teams && (!soDia || m.dayId === soDia))
+                .sort((a, b) => (order[a.dayId] - order[b.dayId]) || (a.created - b.created))
+                .forEach(m => {
+                    const day = dayById(m.dayId), [hg, ag] = score(m), ga = {};
+                    m.events.forEach(e => {
+                        if (s[e.scorer] && !e.own) { s[e.scorer].goals++; ga[e.scorer] = (ga[e.scorer] || 0) + 1; }
+                        if (e.assist && s[e.assist]) { s[e.assist].assists++; ga[e.assist] = (ga[e.assist] || 0) + 1; }
+                        if (e.own && s[e.scorer]) s[e.scorer].golsContra++;
+                    });
+                    (m.muralha || []).forEach(x => { if (s[x.player]) s[x.player].muralhas++; }); /* MURALHA marcada pelo admin */
+                    [[m.home, ag], [m.away, hg]].forEach(([t, contra]) => { const gk = gkOf(day, m, t); if (gk && s[gk]) { s[gk].gkGames++; s[gk].conceded += contra; } });
+                    [[m.home, hg, ag], [m.away, ag, hg]].forEach(([t, f, a]) => {
+                        const r = f > a ? 'W' : f < a ? 'L' : 'D';
+                        roster(day, t, m).forEach(id => { const x = s[id]; if (!x) return; x.games++; x[r.toLowerCase()]++; x.pro += f; x.contra += a; /* SALDO */ x.log.push({ r, ga: ga[id] || 0 }); });
+                    });
+                });
+            return s;
+        }
+        const PRIOR = 1.3, K = 5;
+        function rating(x) {
+            if (!x) return PRIOR;
+            const base = (3 * x.w + x.d + PRIOR * K) / (x.games + K);
+            const contrib = (x.goals + 0.7 * x.assists) / (x.games + K);
+            return base + 0.4 * contrib;
+        }
+        function strength(day, t, st) { const r = roster(day, t); return r.length ? r.reduce((a, id) => a + rating(st[id]), 0) / r.length : 0; }
+
+        /* ========== Sorteio ========== */
+        function partidasEncerradas() { return state.matches.filter(m => m.done).length; }
+        function currentMode() { return partidasEncerradas() >= PARTIDAS_ALEATORIAS ? 'balanced' : 'random'; }
+        function modeInfo() {
+            const restam = PARTIDAS_ALEATORIAS - partidasEncerradas();
+            return restam > 0
+                ? `Próximo sorteio: aleatório. O balanceado por estatísticas passa a valer após a ${PARTIDAS_ALEATORIAS}ª partida encerrada (faltam ${restam}).`
+                : `Próximo sorteio: balanceado por estatísticas (${PARTIDAS_ALEATORIAS}+ partidas encerradas).`;
+        }
+        const pk = (a, b) => a < b ? a + '|' + b : b + '|' + a;
+        function pairCounts(excludeId) {
+            const c = {};
+            sortedDays().filter(d => d.teams && d.id !== excludeId).slice(-state.settings.pairMemory).forEach(d =>
+                TEAMS.forEach(t => { const a = d.teams[t]; for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++) { const k = pk(a[i], a[j]); c[k] = (c[k] || 0) + 1; } }));
+            return c;
+        }
+        function deal(ids) { const t = { YELLOW: [], BLUE: [], RED: [] }; ids.forEach((id, i) => t[TEAMS[i % 3]].push(id)); return t; }
+        function balancedSplit(ids, dayId, gk) {
+            const st = computeStats(), r = {}, gr = {};
+            ids.forEach(id => r[id] = rating(st[id]));
+            TEAMS.forEach(t => gr[t] = gk[t] ? rating(st[gk[t]]) : PRIOR);
+            const pc = pairCounts(dayId);
+            const cost = t => {
+                const sums = TEAMS.map(x => t[x].reduce((a, id) => a + r[id], 0) + gr[x]);
+                let rep = 0;
+                TEAMS.forEach(x => { const a = t[x]; for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++) rep += pc[pk(a[i], a[j])] || 0; });
+                return (Math.max(...sums) - Math.min(...sums)) * 10 + rep * 0.5;
+            };
+            let best = null, bc = Infinity;
+            for (let n = 0; n < 40; n++) {
+                const t = deal(shuffle(ids.slice()));
+                let c = cost(t), improved = true;
+                while (improved) {
+                    improved = false;
+                    for (let a = 0; a < 3; a++) for (let b = a + 1; b < 3; b++) {
+                        const A = t[TEAMS[a]], B = t[TEAMS[b]];
+                        for (let i = 0; i < A.length; i++) for (let j = 0; j < B.length; j++) {
+                            [A[i], B[j]] = [B[j], A[i]];
+                            const nc = cost(t);
+                            if (nc < c - 1e-9) { c = nc; improved = true; } else { [A[i], B[j]] = [B[j], A[i]]; }
+                        }
+                    }
+                }
+                if (c < bc) { bc = c; best = t; }
+            }
+            return best;
+        }
+
+        /* ========== Componentes ========== */
+        function teamCard(day, t, extra = '') {
+            const gk = day.gk && day.gk[t];
+            const empresta = !gk && TEAMS.some(o => o !== t && day.gk && day.gk[o]);
+            return `<div class="card team ${t}">
+    <h3><span>${NOME[t]}</span><span class="tag">${extra || (day.teams[t].length + (gk ? 1 : 0)) + ' jogadores'}</span></h3>
+    <ul class="list">
+      ${gk ? `<li><span>${esc(pname(gk))}</span><span class="tag">Goleiro</span></li>` : empresta ? '<li><span class="tag">Goleiro emprestado do time que folgar</span></li>' : '<li><span class="flag">Sem goleiro</span></li>'}
+      ${day.teams[t].map(id => `<li><span>${esc(pname(id))}</span></li>`).join('')}
+    </ul></div>`;
+        }
+        function matchLine(m) {
+            const [h, a] = score(m), sc = {};
+            m.events.forEach(e => { const k = e.own ? e.scorer + '|c' : e.scorer; sc[k] = (sc[k] || 0) + 1; });
+            const names = Object.entries(sc).map(([id, n]) => { const c = id.endsWith('|c'); return esc(pname(c ? id.slice(0, -2) : id)) + (c ? ' (contra)' : '') + (n > 1 ? ` (${n})` : ''); }).join(', ');
+            return `<li style="display:block"><div>${teamLabel(m.home)} <b>&nbsp;${h} x ${a}&nbsp;</b> ${teamLabel(m.away)}</div>${names ? `<div class="note">Gols: ${names}</div>` : ''}${(m.muralha || []).length ? `<div class="note">Muralha: ${m.muralha.map(x => esc(pname(x.player))).join(', ')}</div>` : ''}${fimTxt(m) ? `<div class="note">${fimTxt(m)}</div>` : ''}</li>`;
+        }
+        function dayResults(day) {
+            const ms = dayMatches(day.id).filter(m => m.done);
+            return ms.length ? `<div class="card"><h3>Resultados</h3><ul class="list">${ms.map(matchLine).join('')}</ul></div>` : '';
+        }
+        function rotacaoTexto(m) {
+            const p = plano(m);
+            if (p.tie) return 'Empate entre times que entraram juntos. O administrador define quem sai.';
+            return `${NOME[p.stay]} permanece, ${NOME[p.leave]} sai e ${NOME[p.waiting]} entra (${p.motivo}).`;
+        }
+
+        /* ========== Telas públicas ========== */
+        function viewTeams() {
+            const t = todayStr(), drawn = sortedDays().filter(d => d.teams);
+            const liveDay = drawn.find(d => dayMatches(d.id).some(m => !m.done));
+            const day = liveDay || drawn.filter(d => d.date >= t).sort((a, b) => (b.drawnAt || 0) - (a.drawnAt || 0))[0] || drawn[drawn.length - 1];
+            const next = sortedDays().find(d => d.date >= t && !d.teams);
+            let h = '<h2>Times</h2>';
+            if (!day) return h + `<p class="sub">Nenhum time sorteado ainda.${next ? ' Próximo dia de jogo: ' + fmtDate(next.date) + '.' : ''}</p>`;
+            h += `<p class="sub">${fmtDate(day.date)}${day.time ? ' às ' + esc(day.time) : ''}${day.place ? ' - ' + esc(day.place) : ''} &middot; Sorteio: ${modeLabel(day.mode)}</p>`;
+            h += seloSorteio(day);
+            const live = dayMatches(day.id).find(m => !m.done);
+            if (live) {
+                const [hg, ag] = score(live), fora = TEAMS.find(x => x !== live.home && x !== live.away);
+                h += `<div class="card"><div class="row between"><div>${teamLabel(live.home)}<span class="score">${hg} x ${ag}</span>${teamLabel(live.away)}</div><span class="pill">Em andamento · <b data-timer="${live.id}">${timerTxt(live)}</b></span></div><p class="note" style="margin-top:6px">Aguardando: ${NOME[fora]}</p></div>`;
+            }
+            h += destaquesDia(day); /* DESTAQUES DO DIA */
+            h += `<div class="grid3">${TEAMS.map(x => teamCard(day, x)).join('')}</div>`;
+            h += dayResults(day);
+            if (next && next.date > day.date) h += `<p class="sub">Próximo dia de jogo: ${fmtDate(next.date)} (times ainda não sorteados).</p>`;
+            return h;
+        }
+
+        function viewSchedule() {
+            const t = todayStr(), ds = sortedDays();
+            const encerrado = d => { if (d.closed) return true; const ms = state.matches.filter(m => m.dayId === d.id); return ms.length > 0 && ms.every(m => m.done); };
+            const past = ds.filter(d => d.date < t || encerrado(d)).reverse();
+            const up = ds.filter(d => !(d.date < t || encerrado(d)));
+            return `<h2>Agenda</h2><p class="sub">Próximos dias de jogo e resultados anteriores.</p>
+  <div class="card"><h3>Próximos</h3>${up.length ? `<ul class="list">${up.map(d => `<li><span>${fmtDate(d.date)}${d.time ? ' às ' + esc(d.time) : ''}${d.place ? ' - ' + esc(d.place) : ''}</span><span class="tag">${dayStatus(d)}</span></li>`).join('')}</ul>` : '<p class="empty">Nenhum dia de jogo agendado.</p>'}</div>
+  <div class="card"><h3>Anteriores</h3>${past.length ? past.map(d => {
+                const ms = dayMatches(d.id).filter(m => m.done);
+                return `<div style="margin-bottom:16px"><div style="font-weight:600">${fmtDate(d.date)}</div>${ms.length ? `<ul class="list">${ms.map(matchLine).join('')}</ul>` : '<p class="empty">Nenhum resultado registrado.</p>'}</div>`;
+            }).join('') : '<p class="empty">Nenhum dia de jogo anterior.</p>'}</div>`;
+        }
+
+        function viewRankings() {
+            const min = state.settings.minGames;
+            const rows = Object.values(computeStats()).filter(x => x.games >= min)
+                .map(x => ({ ...x, v: x.w / x.games }))
+                .sort((a, b) => b.v - a.v || b.games - a.games || a.name.localeCompare(b.name));
+            let rank = 0, prev = null;
+            rows.forEach((x, i) => { if (x.v !== prev) { rank = i + 1; prev = x.v; } x.rank = rank; });
+            return `<h2>Estatísticas</h2><p class="sub">Considera apenas partidas encerradas. Mínimo de ${min} jogos para aparecer. Empatados no winrate, quem jogou mais fica na frente. Saldo = gols do time menos gols sofridos nas partidas em que o jogador esteve em campo.</p>
+  <div class="card scroll">${rows.length ? `<table><thead><tr><th>#</th><th>Jogador</th><th class="num">Jogos</th><th class="num">Vitórias</th><th class="num">Empates</th><th class="num">Derrotas</th><th class="num">Gols</th><th class="num">Assistências</th><th class="num">Muralhas</th><th class="num">Saldo</th><th class="num">Winrate</th></tr></thead><tbody>
+  ${rows.map(x => `<tr><td>${x.rank}</td><td>${esc(x.name)}${x.pos === 'GK' ? ' <span class="tag">Goleiro</span>' : ''}</td><td class="num">${x.games}</td><td class="num">${x.w}</td><td class="num">${x.d}</td><td class="num">${x.l}</td><td class="num">${x.goals}</td><td class="num">${x.assists}</td><td class="num">${x.muralhas}</td><td class="num">${sinal(x.pro - x.contra)}</td><td class="num">${pct(x.w / x.games)}</td></tr>`).join('')}
+  </tbody></table>` : '<p class="empty">Sem dados ainda.</p>'}</div>`;
+        }
+
+        function viewWatch() {
+            const s = state.settings, N = s.watchWindow;
+            const tabs = `<div class="tabs"><button data-tab="observacao" class="${statTab === 'observacao' ? 'active' : ''}">Em observação</button><button data-tab="destaques" class="${statTab === 'destaques' ? 'active' : ''}">Destaques</button><button data-tab="goleiros" class="${statTab === 'goleiros' ? 'active' : ''}">Menos Gols Vazados</button></div>`;
+            if (statTab === 'destaques') {
+                const st = Object.values(computeStats()).filter(x => x.games > 0);
+                const nome = x => esc(x.name) + (x.pos === 'GK' ? ' <span class="tag">GK</span>' : '');
+                const top = (rs, campo, rot) => `<div class="card" style="margin:0"><h3>${rot}</h3>${rs.length ? `<ul class="list">${rs.map((x, i) => `<li><span>${i + 1}. ${nome(x)}</span><b>${x[campo]}</b></li>`).join('')}</ul>` : '<p class="empty">Sem dados ainda.</p>'}</div>`;
+                const topGols = st.filter(x => x.goals > 0).sort((a, b) => b.goals - a.goals || b.assists - a.assists || a.name.localeCompare(b.name)).slice(0, 5);
+                const topAss = st.filter(x => x.assists > 0).sort((a, b) => b.assists - a.assists || b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 5);
+                /* MURALHAS: top 5 de partidas marcadas como muralha (só jogadores de linha) */
+                const topMur = st.filter(x => x.pos === 'FIELD' && x.muralhas > 0).sort((a, b) => b.muralhas - a.muralhas || a.games - b.games || a.name.localeCompare(b.name)).slice(0, 5);
+                return `<h2>Rankings</h2><p class="sub">Os cinco maiores artilheiros, garçons e muralhas da pelada. Muralha: partidas em que o jogador foi marcado pelo admin por segurar a defesa sem o time sofrer gol.</p>` + tabs + `<div class="grid2">${top(topGols, 'goals', 'Top 5 Gols')}${top(topAss, 'assists', 'Top 5 Assistências')}${top(topMur, 'muralhas', 'Top 5 Muralhas')}</div>`;
+            }
+            if (statTab === 'goleiros') {
+                const gks = Object.values(computeStats()).filter(x => x.pos === 'GK' && x.gkGames > 0)
+                    .map(x => ({ ...x, media: x.conceded / x.gkGames, nota: notaGoleiro(x) }))
+                    .sort((a, b) => b.nota - a.nota || a.media - b.media || b.gkGames - a.gkGames || a.name.localeCompare(b.name));
+                let rank = 0, prev = null;
+                gks.forEach((x, i) => { if (x.nota !== prev) { rank = i + 1; prev = x.nota; } x.rank = rank; });
+                return `<h2>Rankings</h2><p class="sub">Goleiros ordenados pela nota (começa em 8,0 e perde 3,0 para cada gol sofrido por jogo; 1 gol por jogo = 5,0). Conta gols sofridos defendendo seu time ou emprestado a outro.</p>` + tabs +
+                    `<div class="card scroll">${gks.length ? `<table><thead><tr><th>#</th><th>Goleiro</th><th class="num">Partidas no gol</th><th class="num">Gols vazados</th><th class="num">Média</th><th class="num">Nota</th></tr></thead><tbody>
+  ${gks.map(x => `<tr><td>${x.rank}</td><td>${esc(x.name)}</td><td class="num">${x.gkGames}</td><td class="num">${x.conceded}</td><td class="num">${x.media.toFixed(2)}</td><td class="num">${chipGk(x.nota)}</td></tr>`).join('')}
+  </tbody></table>` : '<p class="empty">Sem partidas com goleiros no gol ainda.</p>'}</div>`;
+            }
+            const rows = Object.values(computeStats()).filter(x => x.pos === 'FIELD' && x.active && x.games >= s.minGames).map(x => {
+                const last = x.log.slice(-N);
+                const w = last.filter(g => g.r === 'W').length, d = last.filter(g => g.r === 'D').length;
+                const rate = w / last.length, ga = last.reduce((a, g) => a + g.ga, 0);
+                let streak = 0; for (let i = x.log.length - 1; i >= 0 && x.log[i].r === 'L'; i--) streak++;
+                const flags = [];
+                if (streak >= 3) flags.push(`${streak} derrotas seguidas`);
+                if (rate < 0.25) flags.push('Baixa taxa de vitórias recente');
+                if (ga === 0 && last.length >= N) flags.push(`Sem gols ou assistências nos últimos ${N} jogos`);
+                return { ...x, last, rate, ga, flags, ppg: (3 * w + d) / last.length };
+            }).sort((a, b) => b.flags.length - a.flags.length || a.ppg - b.ppg);
+            const flagged = rows.filter(r => r.flags.length).length;
+            return `<h2>Rankings</h2><p class="sub">Desempenho recente nos últimos ${N} jogos. O jogador é sinalizado com 3 ou mais derrotas seguidas, taxa de vitórias recente abaixo de 25% ou nenhum gol ou assistência nos últimos ${N} jogos. Considera jogadores de linha com pelo menos ${s.minGames} jogos.</p>
+  ` + tabs + `<div class="card scroll"><h3>${flagged} jogador${flagged === 1 ? '' : 'es'} sinalizado${flagged === 1 ? '' : 's'}</h3>${rows.length ? `<table><thead><tr><th>Jogador</th><th>Últimos ${N}</th><th class="num">Vit. recente</th><th class="num">G+A</th><th class="num">Vit. geral</th><th>Situação</th></tr></thead><tbody>
+  ${rows.map(x => `<tr><td>${esc(x.name)}</td><td class="form">${x.last.map(g => RES[g.r]).join(' ')}</td><td class="num">${pct(x.rate)}</td><td class="num">${x.ga}</td><td class="num">${pct(x.w / x.games)}</td><td>${x.flags.length ? `<span class="flag">${x.flags.join('; ')}</span>` : '<span class="tag">Normal</span>'}</td></tr>`).join('')}
+  </tbody></table>` : '<p class="empty">Ainda não há jogos suficientes.</p>'}</div>`;
+        }
+
+        /* ========== Telas do administrador ========== */
+        function viewAdmin() {
+            if (!isAdmin) {
+                if (authUser) return `<h2>Admin</h2><div class="card" style="max-width:420px"><p class="flag" style="margin-bottom:12px">${esc(authMsg || 'Verificando permissão...')}</p><button class="btn ghost" data-act="logout">Sair</button></div>`;
+                return `<h2>Admin</h2><p class="sub">Área restrita para agendar dias de jogo e registrar resultados.</p>
+      <div class="card" style="max-width:420px"><form data-form="login" class="fields" style="grid-template-columns:1fr">
+        <label class="field"><span>Senha de acesso</span><input id="lSenha" type="password" autocomplete="current-password" required></label>
+        <button class="btn">Entrar</button></form><p id="loginErr" class="flag" style="margin-top:8px"></p></div>`;
+            }
+            const d = curDay();
+            if (d) return dayPanel(d);
+            return `<div class="row between"><h2>Admin</h2><button class="btn ghost small" data-act="logout">Sair</button></div><p class="sub">${modeInfo()}</p>` + scheduleAdmin() + playersAdmin();
+        }
+
+        function scheduleAdmin() {
+            const ds = sortedDays().reverse();
+            return `<div class="card"><h3>Dias de jogo</h3>
+    <form data-form="addDay" class="row" style="margin-bottom:12px"><input type="date" id="dDate" required value="${todayStr()}"><input type="time" id="dTime"><input id="dPlace" placeholder="Local"><button class="btn">Agendar</button></form>
+    ${ds.length ? `<ul class="list">${ds.map(d => `<li><span>${fmtDate(d.date)}${d.time ? ' ' + esc(d.time) : ''} <span class="tag">&nbsp;${dayStatus(d)}</span></span><button class="btn ghost small" data-act="openDay" data-id="${d.id}">Gerenciar</button></li>`).join('')}</ul>` : '<p class="empty">Nenhum dia de jogo agendado.</p>'}
+  </div>`;
+        }
+
+        function attText(day) {
+            const att = day.attendees.map(P).filter(Boolean);
+            const nf = att.filter(p => p.pos === 'FIELD').length, ng = att.filter(p => p.pos === 'GK').length, target = state.settings.teamSize * 3;
+            return `${nf} de linha + ${ng} goleiro${ng === 1 ? '' : 'res'} selecionados, meta de ${target} de linha (${state.settings.teamSize} por time).${nf % 3 ? ' Os times de linha ficarão desiguais.' : ''}`;
+        }
+
+        function dayPanel(day) {
+            const st = computeStats();
+            const field = state.players.filter(p => p.active || day.attendees.includes(p.id)).sort((a, b) => (a.pos === b.pos ? 0 : a.pos === 'GK' ? -1 : 1) || a.name.localeCompare(b.name));
+            const ms = dayMatches(day.id), locked = ms.length > 0;
+            const nGks = day.attendees.filter(id => P(id) && P(id).pos === 'GK').length;
+            let h = `<div class="row between" style="margin-bottom:20px"><div><h2>${fmtDate(day.date)}</h2><p class="sub" style="margin:0">${[day.time, day.place].filter(Boolean).map(esc).join(' - ') || 'Sem horário ou local definido'}</p></div>
+    <div class="row"><button class="btn ghost" data-act="closeDay">Voltar</button>${!day.closed && ms.some(m => m.done) ? '<button class="btn" data-act="finalizeDay">Finalizar dia</button>' : ''}<button class="btn ghost" data-act="delDay" data-id="${day.id}">Excluir dia</button></div></div>`;
+            if (day.closed) h += `<div class="card banner-fim"><div><b>Dia finalizado</b><span class="note"> · às ${horaMin(day.closedAt)} · ${ms.filter(m => m.done).length} partidas</span><div class="note">Para corrigir um resultado, use o botão Editar (lápis) na partida.</div></div><button class="btn ghost small" data-act="reopenDay">Reabrir dia</button></div>`;
+
+            h += `<div class="card"><h3>Presença</h3><p class="sub" id="attCount">${attText(day)}</p>
+    ${locked ? '<p class="sub">A presença está bloqueada porque já existem partidas registradas.</p>' : '<div class="row" style="margin-bottom:12px"><button class="btn ghost small" data-act="attAll">Selecionar todos</button><button class="btn ghost small" data-act="attNone">Limpar</button></div>'}
+    <div class="checks">${field.map(p => `<label><input type="checkbox" data-chg="att" data-id="${p.id}" ${day.attendees.includes(p.id) ? 'checked' : ''} ${locked ? 'disabled' : ''}>${esc(p.name)}${p.pos === 'GK' ? ' <span class="tag">GK</span>' : ''}</label>`).join('') || '<p class="empty">Nenhum jogador cadastrado.</p>'}</div>
+    <p class="sub" style="margin:12px 0 0">Marque também os goleiros que vieram: os goleiros presentes são sorteados entre os times. Se um time ficar sem goleiro, o goleiro do time que folgar agarra o gol dele.</p></div>`;
+
+            h += `<div class="card"><h3>Sorteio</h3><p class="sub">${modeInfo()}</p>${seloSorteio(day)}
+    ${nGks === 0 ? '<p class="flag" style="margin-bottom:12px">Nenhum goleiro marcado na presença: os times ficarão sem goleiro.</p>' : nGks < 3 ? `<p class="flag" style="margin-bottom:12px">${nGks} goleiro${nGks > 1 ? 's' : ''} na presença: um time ficará sem goleiro fixo e usará o goleiro do time que folgar.</p>` : ''}
+    ${locked ? '<p class="sub" style="margin:0">O sorteio está bloqueado porque já existem partidas registradas neste dia.</p>' : `<button class="btn" data-act="draw">${day.teams ? 'Sortear novamente' : 'Sortear times'}</button>`}</div>`;
+
+            if (day.teams) {
+                h += `<p class="sub">Sorteio: ${modeLabel(day.mode)}. Força é a média da avaliação dos jogadores.</p>
+      <div class="grid3">${TEAMS.map(t => teamCard(day, t, 'Força ' + strength(day, t, st).toFixed(2))).join('')}</div>`;
+
+                /* SUBSTITUIÇÃO: liberada até a primeira partida; depois, só mostra o histórico */
+                if (!locked) h += subsCard(day); else h += subsInfo(day);
+
+                const live = ms.find(m => !m.done), last = ms[ms.length - 1];
+                const tiePending = last && last.done && plano(last).tie;
+                h += `<div class="card"><h3>Partidas</h3><p class="sub">Regra de rodízio: quem vence permanece e enfrenta o time que estava fora. Em caso de empate, sai o time que está há mais partidas seguidas em campo. Se os dois entraram juntos, o administrador escolhe quem sai.</p>`;
+                if (day.closed) {
+                    h += '<p class="note">Dia finalizado. Não é possível criar novas partidas; reabra o dia se precisar.</p>';
+                } else if (tiePending) {
+                    h += `<p style="margin-bottom:8px">Empate na partida entre ${NOME[last.home]} e ${NOME[last.away]}. Quem sai?</p><div class="row">
+        <button class="btn ghost" data-act="leave" data-mid="${last.id}" data-team="${last.home}">Sai ${NOME[last.home]}</button>
+        <button class="btn ghost" data-act="leave" data-mid="${last.id}" data-team="${last.away}">Sai ${NOME[last.away]}</button></div>`;
+                } else if (!live) {
+                    let dh = 'YELLOW', da = 'BLUE';
+                    if (last && last.done) { const p = plano(last); dh = p.stay; da = p.waiting; }
+                    h += `<div class="row"><select id="mHome">${TEAMS.map(t => `<option value="${t}" ${t === dh ? 'selected' : ''}>${NOME[t]}</option>`).join('')}</select><span class="tag">x</span>
+        <select id="mAway">${TEAMS.map(t => `<option value="${t}" ${t === da ? 'selected' : ''}>${NOME[t]}</option>`).join('')}</select>
+        <button class="btn" data-act="addMatch">${ms.length ? 'Nova partida' : 'Iniciar primeira partida'}</button></div>`;
+                } else {
+                    h += `<p class="note">Partida em andamento · cronômetro: <b data-timer="${live.id}">${timerTxt(live)}</b>. O cronômetro só corre depois de clicar em Iniciar. A próxima partida é criada automaticamente ao encerrar.</p>`;
+                }
+                h += '</div>';
+                h += ms.map((m, i) => matchAdmin(m, day, i, ms)).reverse().join('');
+            }
+            return h;
+        }
+
+        function matchAdmin(m, day, i, ms) {
+            const [hg, ag] = score(m), isLast = i === ms.length - 1;
+            const edit = m.done && editando === m.id, livre = !m.done || edit; /* livre = pode lançar e remover lances */
+            const evForm = t => {
+                const gk = gkOf(day, m, t);
+                const opts = roster(day, t, m).map(id => `<option value="${id}">${esc(pname(id))}</option>`).join('');
+                return `<div class="card" style="margin:0; padding:12px"><div style="text-align:center; font-weight:600; margin-bottom:8px">${dot(t)}${NOME[t]}</div>
+      <div class="note" style="text-align:center; margin-bottom:6px">Goleiro: ${gk ? esc(pname(gk)) + (day.gk && day.gk[t] ? '' : ' (emprestado)') : 'nenhum'}</div>
+      <select id="sel-${m.id}-${t}" style="width:100%; margin-bottom:8px"><option value="">Jogador...</option>${opts}</select>
+      <div class="evgrid"><button class="evbtn gol" data-act="addGoal" data-mid="${m.id}" data-team="${t}">Gol</button><button class="evbtn ass" data-act="addAssist" data-mid="${m.id}" data-team="${t}">Assist.</button><button class="evbtn og" data-act="addOwn" data-mid="${m.id}" data-team="${t}">Contra</button><button class="evbtn mur" data-act="addMuralha" data-mid="${m.id}" data-team="${t}">Muralha</button></div></div>`;
+            };
+            return `<div class="card${edit ? ' editando' : ''}"><div class="row between"><span class="tag">Partida ${i + 1}</span><span class="pill">${edit ? 'Editando' : m.done ? 'Encerrada' : 'Em andamento'}</span></div>
+    <div style="text-align:center; margin:6px 0 2px"><b>${NOME[m.home]}</b><span class="score">${hg} x ${ag}</span><b>${NOME[m.away]}</b></div>
+    ${m.done ? '' : `<div class="row" style="justify-content:center; margin:4px 0 8px"><span class="note">Cronômetro: <b data-timer="${m.id}">${timerTxt(m)}</b></span>
+      ${rodando(m) ? `<button class="btn ghost small" data-act="pause" data-mid="${m.id}">Pausar</button>` : `<button class="btn small" data-act="play" data-mid="${m.id}">${iniciado(m) ? 'Retomar' : 'Iniciar'}</button>`}</div>`}
+    ${(m.muralha || []).length ? `<p class="note" style="margin-top:8px">Muralha: ${m.muralha.map((x, k) => `${dot(x.team)}${esc(pname(x.player))}${!livre ? '' : ` <button class="btn ghost small" data-act="delMuralha" data-mid="${m.id}" data-idx="${k}">Remover</button>`}`).join(' &nbsp; ')}</p>` : ''}
+    ${m.events.length ? `<ul class="list" style="margin-top:8px">${m.events.map((e, k) => `<li><span>${dot(e.team)}${esc(pname(e.scorer))}${e.own ? ' <span class="note">(contra)</span>' : ''}${e.assist ? ` <span class="note">&nbsp;assistência: ${esc(pname(e.assist))}</span>` : ''}</span>${!livre ? '' : `<button class="btn ghost small" data-act="delEvent" data-mid="${m.id}" data-idx="${k}">Remover</button>`}</li>`).join('')}</ul>` : '<p class="empty">Nenhum gol ainda.</p>'}
+    ${m.done ? `${fimTxt(m) ? `<p class="note" style="text-align:center; margin-top:4px"><b>${fimTxt(m)}</b></p>` : ''}${edit ? '' : `<p class="note" style="margin-top:8px">${rotacaoTexto(m)}</p>`}` : ''}
+    ${edit ? '<p class="flag" style="margin-top:8px">Modo edição: as mudanças são salvas na hora e atualizam as estatísticas. O rodízio das partidas seguintes não muda.</p>' : ''}
+    ${livre ? `<div class="grid2" style="margin-top:12px">${evForm(m.home)}${evForm(m.away)}</div>` : ''}
+    <div class="row" style="margin-top:12px">
+      ${!m.done ? `<button class="btn small" data-act="finish" data-mid="${m.id}">Encerrar partida</button>`
+                : edit ? `<button class="btn small" data-act="editMatch" data-mid="${m.id}">Concluir edição</button>`
+                : `<button class="btn ghost small btn-ic" data-act="editMatch" data-mid="${m.id}" title="Editar gols, assistências e muralhas">${LAPIS} Editar</button>`}
+      ${m.done && !edit && !day.closed && canReopen(m, ms) ? `<button class="btn ghost small" data-act="reopen" data-mid="${m.id}">Reabrir</button>` : ''}
+      ${isLast && !day.closed && !edit ? `<button class="btn ghost small" data-act="delMatch" data-mid="${m.id}">Excluir partida</button>` : ''}
+    </div></div>`;
+        }
+
+        function playersAdmin() {
+            const ps = state.players.slice().sort((a, b) => (a.pos === b.pos ? 0 : a.pos === 'GK' ? -1 : 1) || a.name.localeCompare(b.name));
+            return `<div class="card"><h3>Jogadores</h3>
+    <form data-form="addPlayer" class="row" style="margin-bottom:8px"><input id="pName" placeholder="Nome" required>
+      <select id="pPos"><option value="FIELD">Jogador de linha</option><option value="GK">Goleiro</option></select><button class="btn">Adicionar</button></form>
+    <p class="sub">Todos entram no sorteio: os goleiros são distribuídos entre os times a cada dia de jogo.</p>
+    ${ps.length ? `<div class="scroll"><table><thead><tr><th>Nome</th><th>Posição</th><th>Situação</th><th></th></tr></thead><tbody>
+    ${ps.map(p => `<tr><td>${esc(p.name)}</td><td>${p.pos === 'GK' ? 'Goleiro' : 'Linha'}</td>
+      <td>${p.active ? 'Ativo' : '<span class="tag">Arquivado</span>'}</td>
+      <td><div class="row" style="justify-content:flex-end"><button class="btn ghost small" data-act="rename" data-id="${p.id}">Renomear</button><button class="btn ghost small" data-act="toggleActive" data-id="${p.id}">${p.active ? 'Arquivar' : 'Restaurar'}</button><button class="btn ghost small" data-act="delPlayer" data-id="${p.id}">Excluir</button></div></td></tr>`).join('')}
+    </tbody></table></div>` : '<p class="empty">Nenhum jogador cadastrado.</p><button class="btn ghost small" data-act="sample">Adicionar jogadores de exemplo</button>'}
+  </div>`;
+        }
+
+        /* ========== Ações ========== */
+        const somenteAdmin = new Set(['openDay', 'delDay', 'attAll', 'attNone', 'draw', 'addMatch', 'addGoal', 'delEvent', 'finish', 'reopen', 'leave', 'delMatch', 'rename', 'toggleActive', 'delPlayer', 'sample', 'reset', 'sub', 'play', 'pause', 'addAssist', 'addOwn', 'addMuralha', 'delMuralha', 'finalizeDay', 'reopenDay', 'editMatch']);
+
+        const act = {
+            theme() { aplicarTema(document.documentElement.dataset.theme === 'escuro' ? 'claro' : 'escuro'); },
+            logout() { signOut(auth); openDay = null; },
+            openDay(b) { openDay = b.dataset.id; render(); window.scrollTo(0, 0); },
+            closeDay() { openDay = null; editando = null; render(); },
+            /* FINALIZAR DIA */
+            async finalizeDay() {
+                const day = curDay(), ms = dayMatches(day.id), abertas = ms.filter(m => !m.done);
+                const vazias = abertas.filter(m => !m.events.length && !(m.muralha || []).length && !iniciado(m));
+                if (abertas.length > vazias.length) { alert('Há uma partida em andamento. Encerre a partida antes de finalizar o dia.'); return; }
+                const feitas = ms.filter(m => m.done).length;
+                if (!confirm(`Finalizar o dia com ${feitas} partida${feitas === 1 ? '' : 's'} encerrada${feitas === 1 ? '' : 's'}?${vazias.length ? ' A próxima partida que ainda não começou será descartada.' : ''}`)) return;
+                day.closed = true; day.closedAt = Date.now(); editando = null;
+                await lote([...vazias.map(m => ['del', 'matches', m.id]), ['set', 'days', day]]);
+            },
+            reopenDay() {
+                const day = curDay();
+                if (!confirm('Reabrir o dia? Você poderá criar novas partidas de novo.')) return;
+                day.closed = false; day.closedAt = null; put('days', day);
+            },
+            /* EDITAR PARTIDA: abre ou fecha a edição de uma partida encerrada */
+            editMatch(b) { editando = editando === b.dataset.mid ? null : b.dataset.mid; render(); },
+            delDay(b) {
+                const id = b.dataset.id, partidas = state.matches.filter(m => m.dayId === id);
+                if (!confirm(partidas.length ? `Excluir este dia e as ${partidas.length} partida(s) registradas (com os gols)?` : 'Excluir este dia de jogo?')) return;
+                openDay = null;
+                lote([...partidas.map(m => ['del', 'matches', m.id]), ['del', 'days', id]]);
+                render();
+            },
+            attAll() { const d = curDay(); d.attendees = state.players.filter(p => p.active).map(p => p.id); put('days', d); },
+            attNone() { const d = curDay(); d.attendees = []; put('days', d); },
+            draw() {
+                const day = curDay();
+                const ids = day.attendees.filter(id => P(id) && P(id).pos === 'FIELD');
+                if (ids.length < 3) { alert('Selecione pelo menos 3 jogadores de linha.'); return; }
+                if (day.teams && !confirm('Sortear novamente? Este clique ficará registrado no selo do dia.')) return;
+                const gks = shuffle(day.attendees.filter(id => P(id) && P(id).pos === 'GK'));
+                const gk = { YELLOW: gks[0] || null, BLUE: gks[1] || null, RED: gks[2] || null }, mode = currentMode();
+                day.teams = mode === 'balanced' ? balancedSplit(ids, day.id, gk) : deal(shuffle(ids.slice()));
+                day.gk = gk; day.mode = mode;
+                day.drawnAt = Date.now();
+                day.drawHistory = [...(day.drawHistory || []), { at: day.drawnAt, mode }];
+                put('days', day);
+            },
+            /* SUBSTITUIÇÃO: suplente assume a vaga de quem saiu, no mesmo time, sem novo sorteio */
+            sub() {
+                const day = curDay(), out = $('#subOut').value, inn = $('#subIn').value;
+                const pos = timeDe(day, out); if (!pos) return;
+                const pOut = P(out), pIn = inn ? P(inn) : null;
+                if (!pIn && !pos.gk) { alert('Selecione quem entra.'); return; }
+                if (pIn && pOut && pIn.pos !== pOut.pos) { alert('Quem entra deve ter a mesma posição de quem sai: linha por linha, goleiro por goleiro.'); return; }
+                if (!confirm(pIn ? `${pIn.name} entra no lugar de ${pname(out)} no ${NOME[pos.t]}?` : `${pname(out)} sai e o ${NOME[pos.t]} fica sem goleiro (usará o emprestado)?`)) return;
+                if (pos.gk) { day.gk = day.gk || { YELLOW: null, BLUE: null, RED: null }; day.gk[pos.t] = inn || null; }
+                else day.teams[pos.t][day.teams[pos.t].indexOf(out)] = inn;
+                day.attendees = [...new Set([...day.attendees.filter(x => x !== out), ...(inn ? [inn] : [])])];
+                day.subs = [...(day.subs || []), { out, in: inn || null, team: pos.t, at: Date.now() }];
+                put('days', day);
+            },
+            /* CRONÔMETRO: play e pause */
+            play(b) {
+                const m = M(b.dataset.mid); if (!m || m.done || rodando(m)) return;
+                const r = relogio(m);
+                m.elapsed = r.elapsed; m.runningSince = Date.now();
+                put('matches', m);
+            },
+            pause(b) {
+                const m = M(b.dataset.mid); if (!m || !rodando(m)) return;
+                congelar(m); put('matches', m);
+            },
+            addMatch() {
+                const h = $('#mHome').value, a = $('#mAway').value;
+                if (h === a) { alert('Escolha dois times diferentes.'); return; }
+                put('matches', novaPartida(openDay, h, a));
+            },
+            addGoal(b) {
+                const m = M(b.dataset.mid), t = b.dataset.team, sel = $(`#sel-${m.id}-${t}`).value;
+                if (!sel) { alert('Selecione o jogador.'); return; }
+                m.events.push({ team: t, scorer: sel, assist: null });
+                const saiu = tirarMuralha(m, adversario(m, t)); /* MURALHA: quem sofreu gol perde a muralha na hora */
+                put('matches', m);
+                if (saiu.length) alert(`Muralha removida (${saiu.join(', ')}): o ${NOME[adversario(m, t)]} sofreu gol.`);
+            },
+            addAssist(b) {
+                const m = M(b.dataset.mid), t = b.dataset.team, sel = $(`#sel-${m.id}-${t}`).value;
+                if (!sel) { alert('Selecione o jogador.'); return; }
+                const last = [...m.events].reverse().find(e => e.team === t && !e.own);
+                if (!last) { alert('Registre um gol deste time antes de lançar a assistência.'); return; }
+                if (last.assist) { alert('O último gol deste time já tem assistência.'); return; }
+                if (last.scorer === sel) { alert('O autor do gol e a assistência devem ser jogadores diferentes.'); return; }
+                last.assist = sel; put('matches', m);
+            },
+            addOwn(b) {
+                const m = M(b.dataset.mid), t = b.dataset.team, sel = $(`#sel-${m.id}-${t}`).value;
+                if (!sel) { alert('Selecione o jogador.'); return; }
+                m.events.push({ team: adversario(m, t), scorer: sel, own: true, assist: null }); /* gol contra conta para o adversário desta partida */
+                const saiu = tirarMuralha(m, t);
+                put('matches', m);
+                if (saiu.length) alert(`Muralha removida (${saiu.join(', ')}): o ${NOME[t]} sofreu gol.`);
+            },
+            /* MURALHA: o admin marca o jogador de linha que segurou a defesa numa partida sem sofrer gol */
+            addMuralha(b) {
+                const m = M(b.dataset.mid), t = b.dataset.team, sel = $(`#sel-${m.id}-${t}`).value;
+                if (!sel) { alert('Selecione o jogador.'); return; }
+                if (!P(sel) || P(sel).pos !== 'FIELD') { alert('A muralha é para jogador de linha. O goleiro já aparece no Paredão.'); return; }
+                const sofridos = m.events.filter(e => e.team !== t).length;
+                if (sofridos > 0) { alert(`O ${NOME[t]} já sofreu gol nesta partida. A muralha é só para quem não sofreu gol.`); return; }
+                m.muralha = m.muralha || [];
+                if (m.muralha.some(x => x.player === sel)) { alert('Este jogador já está marcado como muralha nesta partida.'); return; }
+                m.muralha.push({ team: t, player: sel }); put('matches', m);
+            },
+            delMuralha(b) { const m = M(b.dataset.mid); m.muralha.splice(+b.dataset.idx, 1); put('matches', m); },
+            delEvent(b) { const m = M(b.dataset.mid); m.events.splice(+b.dataset.idx, 1); put('matches', m); },
+            async finish(b) {
+                const m = M(b.dataset.mid);
+                const ms = dayMatches(m.dayId), isLast = ms[ms.length - 1].id === m.id;
+                congelar(m); /* CRONÔMETRO: para o relógio ao encerrar */
+                const antes = (m.muralha || []).length; /* MURALHA: só vale para time que terminou sem sofrer gol */
+                m.muralha = (m.muralha || []).filter(x => !m.events.some(e => e.team !== x.team));
+                if (m.muralha.length < antes) alert('Uma muralha foi removida porque o time dela sofreu gol nesta partida.');
+                m.endedAt = Date.now(); /* FINALIZAÇÃO: guarda o horário do fim */
+                m.done = true;
+                const p = plano(m);
+                const ops = [['set', 'matches', m]];
+                if (isLast && !p.tie) ops.push(['set', 'matches', novaPartida(m.dayId, p.stay, p.waiting)]);
+                await lote(ops);
+            },
+            async reopen(b) {
+                const m = M(b.dataset.mid), ms = dayMatches(m.dayId), next = ms[ms.findIndex(x => x.id === m.id) + 1];
+                m.done = false; m.endedAt = null; /* FINALIZAÇÃO: ao reabrir, o horário do fim é apagado */
+                const ops = [['set', 'matches', m]];
+                if (next) ops.push(['del', 'matches', next.id]);
+                await lote(ops);
+            },
+            leave(b) {
+                const m = M(b.dataset.mid), sai = b.dataset.team;
+                const fica = sai === m.home ? m.away : m.home, entra = TEAMS.find(t => t !== m.home && t !== m.away);
+                put('matches', novaPartida(m.dayId, fica, entra));
+            },
+            delMatch(b) { if (confirm('Excluir esta partida e seus gols?')) del('matches', b.dataset.mid); },
+            rename(b) { const p = P(b.dataset.id), n = prompt('Novo nome', p.name); if (n && n.trim()) { p.name = n.trim(); put('players', p); } },
+            toggleActive(b) { const p = P(b.dataset.id); p.active = !p.active; put('players', p); },
+            delPlayer(b) {
+                const id = b.dataset.id;
+                const used = state.days.some(d => d.attendees.includes(id) || (d.teams && TEAMS.some(t => d.teams[t].includes(id))) || (d.gk && Object.values(d.gk).includes(id)))
+                    || state.matches.some(m => m.events.some(e => e.scorer === id || e.assist === id));
+                if (used) { alert('Este jogador possui histórico. Arquive-o para manter as estatísticas.'); return; }
+                if (confirm('Excluir este jogador?')) del('players', id);
+            },
+            sample() {
+                const ops = [];
+                ['Lucas', 'Mateus', 'Gabriel', 'Rafael', 'Pedro', 'Felipe', 'Bruno', 'Thiago', 'Diego', 'Caio', 'Igor', 'Leandro', 'Renan', 'Vinicius', 'Marcos', 'Andre', 'Joao', 'Daniel']
+                    .forEach(name => ops.push(['set', 'players', { id: uid(), name, pos: 'FIELD', team: null, active: true }]));
+                ['Rodrigo', 'Fabio', 'Henrique']
+                    .forEach(name => ops.push(['set', 'players', { id: uid(), name, pos: 'GK', team: null, active: true }]));
+                lote(ops);
+            },
+            exportData() {
+                const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'dia-de-jogo-' + todayStr() + '.json'; a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+            },
+            async reset() {
+                if (!confirm('Apagar todos os jogadores, dias de jogo e estatísticas?') || !confirm('Esta ação não pode ser desfeita. Continuar?')) return;
+                const ops = [];
+                ['players', 'days', 'matches'].forEach(col => state[col].forEach(o => ops.push(['del', col, o.id])));
+                ops.push(['set', 'config', { id: 'settings', ...PADRAO }]);
+                openDay = null; await lote(ops);
+            }
+        };
+
+        const chg = {
+            att(el) {
+                const d = curDay(), id = el.dataset.id;
+                d.attendees = el.checked ? [...new Set([...d.attendees, id])] : d.attendees.filter(x => x !== id);
+                $('#attCount').textContent = attText(d);
+                put('days', d);
+            },
+            importData(el) {
+                if (!isAdmin) return;
+                const file = el.files[0]; if (!file) return;
+                const r = new FileReader();
+                r.onload = async () => {
+                    try {
+                        const d = JSON.parse(r.result);
+                        if (!Array.isArray(d.players) || !Array.isArray(d.days) || !Array.isArray(d.matches)) throw 0;
+                        if (!confirm('Importar este arquivo? Os registros com o mesmo identificador serão substituídos.')) return;
+                        const ops = [];
+                        ['players', 'days', 'matches'].forEach(col => d[col].forEach(o => ops.push(['set', col, o])));
+                        const s = { ...PADRAO }; Object.keys(PADRAO).forEach(k => { if (d.settings && d.settings[k]) s[k] = d.settings[k]; });
+                        ops.push(['set', 'config', { id: 'settings', ...s }]);
+                        await lote(ops); alert('Dados importados.');
+                    } catch (e) { alert('Arquivo inválido.'); }
+                };
+                r.readAsText(file);
+            }
+        };
+
+        const frm = {
+            login() {
+                signInWithEmailAndPassword(auth, ADMIN_EMAIL, $('#lSenha').value)
+                    .catch(e => {
+                        const msgs = {
+                            'auth/invalid-credential': 'Senha incorreta.',
+                            'auth/wrong-password': 'Senha incorreta.',
+                            'auth/user-not-found': 'Senha incorreta.',
+                            'auth/too-many-requests': 'Muitas tentativas. Aguarde um minuto e tente novamente.'
+                        };
+                        $('#loginErr').textContent = msgs[e.code] || 'Erro: ' + (e.code || e.message);
+                    });
+            },
+            addDay() {
+                if (!isAdmin) return;
+                const date = $('#dDate').value; if (!date) return;
+                const d = { id: uid(), date, time: $('#dTime').value, place: $('#dPlace').value.trim(), attendees: [], teams: null, gk: null, mode: null };
+                openDay = d.id; put('days', d); render();
+            },
+            addPlayer() {
+                if (!isAdmin) return;
+                const name = $('#pName').value.trim(); if (!name) return;
+                if (state.players.some(p => p.name.toLowerCase() === name.toLowerCase())) { alert('Já existe um jogador com esse nome.'); return; }
+                const pos = $('#pPos').value;
+                put('players', { id: uid(), name, pos, team: null, active: true });
+                setTimeout(() => $('#pName') && $('#pName').focus(), 50);
+            },
+            settings() {
+                if (!isAdmin) return;
+                const n = (id, min) => Math.max(min, parseInt($('#' + id).value, 10) || min);
+                put('config', { id: 'settings', teamSize: n('sTeam', 1), pairMemory: n('sPair', 1), watchWindow: n('sWin', 2), minGames: n('sMin', 1) })
+                    .then(() => alert('Configurações salvas.'));
+            }
+        };
+
+        /* ========== Eventos e renderização ========== */
+        document.addEventListener('click', e => {
+            const b = e.target.closest('[data-act],[data-view],[data-tab]'); if (!b) return;
+            if (b.dataset.view) { view = b.dataset.view; openDay = null; editando = null; render(); return; }
+            if (b.dataset.tab) { statTab = b.dataset.tab; render(); return; }
+            const a = b.dataset.act;
+            if (somenteAdmin.has(a) && !isAdmin) return;
+            act[a] && act[a](b);
+        });
+        document.addEventListener('change', e => { const el = e.target.closest('[data-chg]'); if (el && chg[el.dataset.chg]) chg[el.dataset.chg](el); });
+        document.addEventListener('submit', e => { e.preventDefault(); const f = e.target.dataset.form; if (frm[f]) frm[f](e.target); });
+
+        /* ========== Cronômetro da partida e alarme ========== */
+        const alarmeTocado = new Set();
+        let audioCtx = null;
+        function tocarAlarme() {
+            try {
+                audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                [0, 0.4, 0.8].forEach(atraso => {
+                    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                    o.type = 'square'; o.frequency.value = 880;
+                    o.connect(g); g.connect(audioCtx.destination);
+                    const t0 = audioCtx.currentTime + atraso;
+                    g.gain.setValueAtTime(0.0001, t0);
+                    g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02);
+                    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.28);
+                    o.start(t0); o.stop(t0 + 0.3);
+                });
+            } catch (e) { }
+        }
+        document.addEventListener('click', () => {
+            try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); } catch (e) { }
+        }, { once: true });
+        function tickTimers() {
+            document.querySelectorAll('[data-timer]').forEach(el => {
+                const m = M(el.dataset.timer);
+                if (!m || m.done) return;
+                const rest = restante(m);
+                el.textContent = timerTxt(m);
+                el.classList.toggle('tempo-esgotado', iniciado(m) && rest <= 0);
+                if (rest <= 0 && rodando(m) && !alarmeTocado.has(m.id)) {
+                    alarmeTocado.add(m.id);
+                    if (isAdmin && rest > -10000) tocarAlarme(); /* só no aparelho do admin e só na hora */
+                }
+            });
+        }
+        setInterval(tickTimers, 1000);
+
+        function render() {
+            document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+            if (loadError) { $('#app').innerHTML = `<div class="card"><h3>Erro ao carregar os dados</h3><p class="sub" style="margin:0">${esc(loadError)}. Verifique a configuração e as regras do Firestore.</p></div>`; return; }
+            if (!Object.values(loaded).every(Boolean)) { $('#app').innerHTML = '<p class="empty">Carregando...</p>'; return; }
+            $('#app').innerHTML = ({ teams: viewTeams, schedule: viewSchedule, rankings: viewRankings, watch: viewWatch, admin: viewAdmin })[view]();
+        }
+    </script>
+</body>
+
+</html>
